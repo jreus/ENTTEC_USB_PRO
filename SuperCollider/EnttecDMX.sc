@@ -1,3 +1,20 @@
+/********************************************
+
+EnttecDMX Interface Class
+
+Jonathan Reus, 2016
+
+Usage:
+
+~port = SerialPort.devices[2]; // the serial port where the Enttec is connected
+d = EnttecDMX.new(~port, 3);   // 3 channel DMX output
+d.sendDMX(0.5,0.5,0.5);        // set all 3 channels to half brightness
+d.sendDMX(0, 0, 0);            // set all 3 channels to 0 brightness
+d.close();                     // close the serial port
+
+
+*********************************************/
+
 
 EnttecDMX {
 	var <num_channels, ch1_idx;
