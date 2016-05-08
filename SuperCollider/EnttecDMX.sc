@@ -20,9 +20,10 @@ EnttecDMX {
 	var <num_channels, ch1_idx;
 	var <port;
 	var <serial_packet;
+	var <>brightness;
 
-	*new {|portid=nil, numchannels=4|
-		^super.new.init(portid, numchannels);
+	*new {|portid=nil, numchannels=4, cmdperiod=true|
+		^super.new.init(portid, numchannels, cmdperiod);
 	}
 
 	// ENTTEC serial protocol
@@ -33,9 +34,10 @@ EnttecDMX {
 	// 0 0 - start code
 	// b1 ... bn channel values (each 1 byte)
 	// 231 - end byte 0xE7
-	init {|portid, numchannels|
+	init {|portid, numchannels, cmdperiod|
 		var tmp;
 		num_channels = numchannels;
+		brightness = 1.0;
 
 		// Create serial packet array
 		serial_packet = Int8Array.with(0x7E, 6, numchannels + 1, 0, 0);
@@ -56,6 +58,12 @@ EnttecDMX {
 		("Opening serial port" + portid + " ...").postln;
 		port = SerialPort.new(portid, 57600);
 
+		if(cmdperiod == true) {
+			CmdPeriod.add({
+				this.close;
+			});
+		};
+
 	}
 
 	// DMX values from 0.0 - 1.0.
@@ -68,7 +76,7 @@ EnttecDMX {
 		} {
 			vals.do ({|theval, i|
 				if(theval <= 1.0) {
-					serial_packet[ch1_idx + i] = (theval * 255.0).asInt;
+					serial_packet[ch1_idx + i] = (theval * brightness * 255.0).asInt;
 				}
 			});
 			//("Sending packet "+serial_packet).postln;
@@ -77,7 +85,9 @@ EnttecDMX {
 	}
 
 	close {
+		"Closing serial ports for EnttecDMX...".postln;
 		SerialPort.closeAll;
+		this.release;
 	}
 }
 
